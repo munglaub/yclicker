@@ -4,6 +4,7 @@ import random
 import time
 import threading
 from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QVBoxLayout, QLineEdit
+from PySide6.QtGui import QIcon
 
 from pynput import mouse, keyboard
 
@@ -11,13 +12,14 @@ myMouse = mouse.Controller()
 myKeyboard = keyboard.Controller()
 shouldRun = False
 
-intervalMillis = 1000
+intervalMillis = 161
 
 def work():
     while shouldRun:
         myKeyboard.press('r')
         myKeyboard.release('r')
-        time.sleep((intervalMillis + random.randint(1, 50)) / 1000)
+        myMouse.click(mouse.Button.left)
+        time.sleep((intervalMillis + random.randint(1, 19)) / 1000)
 
 
 def startStop():
@@ -39,6 +41,9 @@ def myOnPress(key):
 listener = keyboard.Listener(on_press=myOnPress)
 listener.start()
 
+if sys.platform == 'win32':
+    import ctypes
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("yclicker.app.1.0")
 
 app = QApplication(sys.argv)
 
@@ -52,6 +57,7 @@ exitBtn = QPushButton("exit")
 exitBtn.clicked.connect(app.exit)
 
 window = QWidget()
+window.setWindowIcon(QIcon("yclicker.ico"))
 window.setWindowTitle("yclicker")
 layout = QVBoxLayout()
 layout.addWidget(intervalInput)
