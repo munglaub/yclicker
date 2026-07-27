@@ -1,0 +1,16 @@
+
+
+# dev
+source .venv/bin/activate
+
+pip install pyside6
+pip install pynput
+
+
+# project init was with:
+python3 -m venv .venv
+
+
+
+
+
