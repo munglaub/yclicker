@@ -48,7 +48,6 @@ def work():
     while shouldRun:
         if config.withKeypress:
             press('r')
-            myMouse.click(mouse.Button.left)
         myMouse.click(mouse.Button.left)
         time.sleep((config.intervalMillis + random.randint(1, 19)) / 1000)
 
