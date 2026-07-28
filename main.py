@@ -3,7 +3,7 @@ import sys
 import random
 import time
 import threading
-from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QVBoxLayout, QLineEdit, QCheckBox
+from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QVBoxLayout, QLineEdit, QCheckBox, QRadioButton
 from PySide6.QtGui import QIcon
 
 from pynput import mouse, keyboard
@@ -14,12 +14,25 @@ shouldRun = False
 
 intervalMillis = 161
 
+def press(key):
+    myKeyboard.press(key)
+    myKeyboard.release(key)
+
 def work():
     while shouldRun:
-        if pressKeyCk.isChecked():
-            myKeyboard.press('r')
-            myKeyboard.release('r')
-        myMouse.click(mouse.Button.left)
+        if rbClickPress.isChecked():
+            press('r')
+            myMouse.click(mouse.Button.left)
+        elif rbClickonly.isChecked():
+            myMouse.click(mouse.Button.left)
+        elif rbKeyMode.isChecked():
+            press('r')
+            time.sleep(0.05)
+            press('b')
+            time.sleep(0.05)
+            press('b')
+            time.sleep(0.05)
+            press(keyboard.Key.esc)
         time.sleep((intervalMillis + random.randint(1, 19)) / 1000)
 
 
@@ -51,8 +64,6 @@ app = QApplication(sys.argv)
 
 intervalInput = QLineEdit()
 intervalInput.setText(str(intervalMillis))
-pressKeyCk = QCheckBox("with keypress (r)")
-pressKeyCk.setChecked(True)
 
 startStopBtn = QPushButton("start/stop (f8)")
 startStopBtn.clicked.connect(startStop)
@@ -60,12 +71,20 @@ startStopBtn.clicked.connect(startStop)
 exitBtn = QPushButton("exit")
 exitBtn.clicked.connect(app.exit)
 
+rbClickonly = QRadioButton("click only")
+rbClickPress = QRadioButton("click && r")
+rbClickPress.setChecked(True)
+rbKeyMode = QRadioButton("key mode")
+
+
 window = QWidget()
 window.setWindowIcon(QIcon("yclicker.ico"))
 window.setWindowTitle("yclicker")
 layout = QVBoxLayout()
 layout.addWidget(intervalInput)
-layout.addWidget(pressKeyCk)
+layout.addWidget(rbClickonly)
+layout.addWidget(rbClickPress)
+layout.addWidget(rbKeyMode)
 layout.addWidget(startStopBtn)
 layout.addWidget(exitBtn)
 
