@@ -7,7 +7,7 @@ import random
 import time
 import threading
 from PySide6.QtCore import Qt, QRect, QEvent, QTimer
-from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QVBoxLayout, QLineEdit, QCheckBox, QRadioButton, QSystemTrayIcon, QMenu, QLabel
+from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QVBoxLayout, QLineEdit, QCheckBox, QRadioButton, QSystemTrayIcon, QMenu, QLabel, QMainWindow
 from PySide6.QtGui import QIcon, QPixmap, QColor, QPainter, QAction
 
 from pynput import mouse, keyboard
@@ -87,10 +87,19 @@ def setControlsEnabled(enabled: bool):
 
 
 class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.texture = QPixmap("steel.png")
+
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange and self.isMinimized():
             QTimer.singleShot(0, self.hide)
         super().changeEvent(event)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.drawTiledPixmap(self.rect(), self.texture)
+        super().paintEvent(event)
 
 
 def setAppIcon(icon: QIcon):
@@ -171,9 +180,12 @@ headerfont = header.font()
 headerfont.setBold(True)
 header.setFont(headerfont)
 
-footer = QLabel("version 2.7.4 special edition (certified)")
+footer = QLabel("version 2.8.1 special edition (certified)")
+
+
 
 window = MainWindow()
+
 inactive_icon = iconForActive(False)
 window.setWindowIcon(inactive_icon)
 app.setWindowIcon(inactive_icon)
@@ -200,6 +212,10 @@ layout.addWidget(footer)
 
 window.setLayout(layout)
 window.show()
+
+with open("style.qss", "r") as f:
+    app.setStyleSheet(f.read())
+
 app.exec()
 
 

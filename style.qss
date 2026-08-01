@@ -1,0 +1,40 @@
+
+
+QWidget {
+    background-color: #2B2A28; 
+    color: #D5D0C5;
+    font-size: 10pt;
+}
+
+QPushButton {
+    background-color: transparent;
+    border: 2px solid #4A4E51;
+    border-radius: 3px;
+    padding: 6px;
+}
+
+QPushButton:hover {
+    background-color: #2B2A28;
+}
+
+QPushButton:pressed {
+    background-color: #494337;
+    padding-top: 7px;
+    padding-left: 7px;
+}
+
+QCheckBox {
+    background: transparent;
+    background-color: transparent;
+}
+
+QLineEdit {
+    background: #2B2A28;
+    border: 2px solid #4A4E51;
+    padding: 4px;
+}
+
+QLabel {
+    background: transparent;
+    background-color: transparent;
+}
