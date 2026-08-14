@@ -1,4 +1,6 @@
 yclicker.bat
 .venv/
-yclicker_orig.ico
+build/
+dist/
 config.json
+yclicker.spec

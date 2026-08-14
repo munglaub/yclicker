@@ -17,9 +17,16 @@ myKeyboard = keyboard.Controller()
 shouldRun = False
 window = None
 tray = None
-icon_path = Path(__file__).resolve().parent / "yclicker.ico"
+def resource_path(name: str) -> Path:
+    if hasattr(sys, "_MEIPASS"):
+        base_path = Path(sys._MEIPASS)
+    else:
+        base_path = Path(__file__).resolve().parent
+    return base_path / name
 
-CONFIG_FILE = Path("config.json")
+icon_path = resource_path("yclicker.ico")
+
+CONFIG_FILE = resource_path("config.json")
 
 @dataclass
 class Config:
@@ -89,7 +96,7 @@ def setControlsEnabled(enabled: bool):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.texture = QPixmap("steel.png")
+        self.texture = QPixmap(str(resource_path("steel.png")))
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.WindowStateChange and self.isMinimized():
@@ -210,11 +217,14 @@ layout.addWidget(startStopBtn)
 layout.addWidget(exitBtn)
 layout.addWidget(footer)
 
+
 window.setLayout(layout)
 window.show()
 
-with open("style.qss", "r") as f:
-    app.setStyleSheet(f.read())
+style_path = resource_path("style.qss")
+if style_path.exists():
+    with style_path.open("r") as f:
+        app.setStyleSheet(f.read())
 
 app.exec()
 
