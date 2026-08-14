@@ -8,6 +8,6 @@ python -m pip install --upgrade pip
 pip install PySide6 pynput pyinstaller
 
 REM Ensure yclicker.ico and config.json are present in the project root
-pyinstaller --onefile --windowed --name yclicker --icon=yclicker.ico --add-data "config.json;." --add-data "yclicker.ico;." main.py
+pyinstaller --onefile --windowed --name yclicker --icon=yclicker.ico --add-data "config.json;." --add-data "yclicker.ico;." --add-data "steel.png;." --add-data "style.qss;." main.py
 
 echo Build finished. See dist\yclicker.exe

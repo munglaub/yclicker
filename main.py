@@ -6,7 +6,7 @@ import json
 import random
 import time
 import threading
-from PySide6.QtCore import Qt, QRect, QEvent, QTimer
+from PySide6.QtCore import Qt, QRect, QEvent, QTimer, QObject, Slot, QMetaObject
 from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QVBoxLayout, QLineEdit, QCheckBox, QRadioButton, QSystemTrayIcon, QMenu, QLabel, QMainWindow
 from PySide6.QtGui import QIcon, QPixmap, QColor, QPainter, QAction
 
@@ -137,6 +137,12 @@ def onTrayActivated(reason):
             window.raise_()
 
 
+class HotkeyRelay(QObject):
+    @Slot()
+    def toggle(self):
+        startStop()
+
+
 def startStop():
     global shouldRun
     shouldRun = not shouldRun
@@ -155,18 +161,24 @@ def startStop():
         setAppIcon(inactive_icon)
         updateTrayIcon(False)
 
-def myOnPress(key):
-    if key == keyboard.Key.f8:
-        startStop()
 
-listener = keyboard.Listener(on_press=myOnPress)
-listener.start()
+def myOnPress(key):
+    if key == keyboard.Key.f8 and hotkey_relay is not None:
+        QMetaObject.invokeMethod(hotkey_relay, "toggle", Qt.ConnectionType.QueuedConnection)
+
+
+listener = None
+hotkey_relay = None
 
 if sys.platform == 'win32':
     import ctypes
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("yclicker.app.1.0")
 
 app = QApplication(sys.argv)
+hotkey_relay = HotkeyRelay()
+listener = keyboard.Listener(on_press=myOnPress, suppress=False)
+listener.start()
+app.aboutToQuit.connect(listener.stop)
 
 intervalInput = QLineEdit()
 intervalInput.setText(str(config.intervalMillis))
