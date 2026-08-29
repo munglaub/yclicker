@@ -32,6 +32,7 @@ CONFIG_FILE = resource_path("config.json")
 class Config:
     intervalMillis: int = 161
     withKeypress: bool = True
+    keypressDelayMillis: int = 0
 
 def loadConfig():
     if CONFIG_FILE.exists():
@@ -41,6 +42,7 @@ def loadConfig():
 def saveConfig():
     config.intervalMillis = int(intervalInput.text())
     config.withKeypress = pressKeyCk.isChecked()
+    config.keypressDelayMillis = int(keypressDelayInput.text())
     with CONFIG_FILE.open("w") as f:
         json.dump(asdict(config), f, indent=4)
 
@@ -54,9 +56,11 @@ def work():
     global config
     while shouldRun:
         if config.withKeypress:
+            if config.keypressDelayMillis > 0:
+                time.sleep(config.keypressDelayMillis / 1000)
             press('r')
         myMouse.click(mouse.Button.left)
-        time.sleep((config.intervalMillis + random.randint(1, 19)) / 1000)
+        time.sleep((config.intervalMillis + random.randint(1, 10)) / 1000)
 
 
 def iconForActive(active: bool) -> QIcon:
@@ -90,6 +94,7 @@ def iconForActive(active: bool) -> QIcon:
 
 def setControlsEnabled(enabled: bool):
     intervalInput.setEnabled(enabled)
+    keypressDelayInput.setEnabled(enabled)
     pressKeyCk.setEnabled(enabled)
 
 
@@ -184,6 +189,10 @@ intervalInput = QLineEdit()
 intervalInput.setText(str(config.intervalMillis))
 intervalInput.textChanged.connect(saveConfig)
 
+keypressDelayInput = QLineEdit()
+keypressDelayInput.setText(str(config.keypressDelayMillis))
+keypressDelayInput.textChanged.connect(saveConfig)
+
 startStopBtn = QPushButton("start/stop (f8)")
 startStopBtn.clicked.connect(startStop)
 
@@ -223,8 +232,11 @@ tray.setContextMenu(tray_menu)
 tray.activated.connect(onTrayActivated)
 tray.show()
 layout.addWidget(header)
+layout.addWidget(QLabel("click interval (ms)"))
 layout.addWidget(intervalInput)
 layout.addWidget(pressKeyCk)
+layout.addWidget(QLabel("delay keypress (ms)"))
+layout.addWidget(keypressDelayInput)
 layout.addWidget(startStopBtn)
 layout.addWidget(exitBtn)
 layout.addWidget(footer)
