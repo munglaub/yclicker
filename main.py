@@ -208,7 +208,7 @@ headerfont = header.font()
 headerfont.setBold(True)
 header.setFont(headerfont)
 
-footer = QLabel("version 2.8.1 special edition (certified)")
+footer = QLabel("version 2.9.0 special edition (certified)")
 
 
 
