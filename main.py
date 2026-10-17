@@ -8,7 +8,7 @@ import json
 import random
 import time
 import threading
-from PySide6.QtCore import Qt, QRect, QEvent, QTimer, QObject, Slot, Signal
+from PySide6.QtCore import Qt, QRect, QObject, Slot, Signal
 from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QVBoxLayout, QLineEdit, QCheckBox, QRadioButton, QSystemTrayIcon, QMenu, QLabel, QMainWindow, QMessageBox
 from PySide6.QtGui import QIcon, QPixmap, QColor, QPainter, QAction
 
@@ -132,10 +132,14 @@ class MainWindow(QWidget):
         super().__init__()
         self.texture = QPixmap(str(resource_path("steel.png")))
 
-    def changeEvent(self, event):
-        if event.type() == QEvent.Type.WindowStateChange and self.isMinimized():
-            QTimer.singleShot(0, self.hide)
-        super().changeEvent(event)
+    def closeEvent(self, event):
+        self.hide()
+        event.accept()
+
+    def restoreFromTray(self):
+        self.showNormal()
+        self.activateWindow()
+        self.raise_()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -166,9 +170,7 @@ def updateTrayIcon(active: bool):
 def onTrayActivated(reason):
     if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
         if window is not None:
-            window.showNormal()
-            window.activateWindow()
-            window.raise_()
+            window.restoreFromTray()
 
 
 class HotkeyRelay(QObject):
@@ -220,6 +222,7 @@ if sys.platform == 'win32':
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("yclicker.app.1.0")
 
 app = QApplication(sys.argv)
+app.setQuitOnLastWindowClosed(False)
 try:
     input_backend = WaylandInput() if IS_WAYLAND else PynputInput()
 except RuntimeError as error:
