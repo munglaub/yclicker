@@ -1,4 +1,6 @@
 import sys
+import os
+import importlib
 from pathlib import Path
 
 from dataclasses import dataclass, asdict
@@ -6,14 +8,31 @@ import json
 import random
 import time
 import threading
-from PySide6.QtCore import Qt, QRect, QEvent, QTimer, QObject, Slot, QMetaObject
-from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QVBoxLayout, QLineEdit, QCheckBox, QRadioButton, QSystemTrayIcon, QMenu, QLabel, QMainWindow
+from PySide6.QtCore import Qt, QRect, QEvent, QTimer, QObject, Slot, Signal
+from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QVBoxLayout, QLineEdit, QCheckBox, QRadioButton, QSystemTrayIcon, QMenu, QLabel, QMainWindow, QMessageBox
 from PySide6.QtGui import QIcon, QPixmap, QColor, QPainter, QAction
 
-from pynput import mouse, keyboard
+IS_WAYLAND = sys.platform.startswith("linux") and (
+    os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland"
+    or bool(os.environ.get("WAYLAND_DISPLAY"))
+)
 
-myMouse = mouse.Controller()
-myKeyboard = keyboard.Controller()
+if IS_WAYLAND:
+    wayland_support = importlib.import_module("wayland_support")
+    GlobalShortcutPortal = wayland_support.GlobalShortcutPortal
+    ToggleIpcServer = wayland_support.ToggleIpcServer
+    WaylandInput = wayland_support.WaylandInput
+    request_running_toggle = wayland_support.request_running_toggle
+else:
+    from pynput import mouse, keyboard
+
+
+if IS_WAYLAND and "--toggle" in sys.argv[1:]:
+    if request_running_toggle():
+        sys.exit(0)
+    sys.exit("yclicker is not running; the Wayland F8 fallback could not toggle it.")
+
+input_backend = None
 shouldRun = False
 window = None
 tray = None
@@ -48,9 +67,19 @@ def saveConfig():
 
 config = loadConfig()
 
-def press(key):
-    myKeyboard.press(key)
-    myKeyboard.release(key)
+
+class PynputInput:
+    def __init__(self):
+        self.mouse = mouse.Controller()
+        self.keyboard = keyboard.Controller()
+
+    def click_left(self):
+        self.mouse.click(mouse.Button.left)
+
+    def press_r(self):
+        self.keyboard.press("r")
+        self.keyboard.release("r")
+
 
 def work():
     global config
@@ -58,8 +87,8 @@ def work():
         if config.withKeypress:
             if config.keypressDelayMillis > 0:
                 time.sleep(config.keypressDelayMillis / 1000)
-            press('r')
-        myMouse.click(mouse.Button.left)
+            input_backend.press_r()
+        input_backend.click_left()
         time.sleep((config.intervalMillis + random.randint(1, 10)) / 1000)
 
 
@@ -143,6 +172,15 @@ def onTrayActivated(reason):
 
 
 class HotkeyRelay(QObject):
+    toggle_requested = Signal()
+
+    def __init__(self):
+        super().__init__()
+        self.toggle_requested.connect(self.toggle, Qt.ConnectionType.QueuedConnection)
+
+    def request_toggle(self):
+        self.toggle_requested.emit()
+
     @Slot()
     def toggle(self):
         startStop()
@@ -169,21 +207,30 @@ def startStop():
 
 def myOnPress(key):
     if key == keyboard.Key.f8 and hotkey_relay is not None:
-        QMetaObject.invokeMethod(hotkey_relay, "toggle", Qt.ConnectionType.QueuedConnection)
+        hotkey_relay.request_toggle()
 
 
 listener = None
 hotkey_relay = None
+wayland_portal = None
+toggle_ipc = None
 
 if sys.platform == 'win32':
     import ctypes
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("yclicker.app.1.0")
 
 app = QApplication(sys.argv)
+try:
+    input_backend = WaylandInput() if IS_WAYLAND else PynputInput()
+except RuntimeError as error:
+    QMessageBox.critical(None, "yclicker input error", str(error))
+    sys.exit(1)
+
 hotkey_relay = HotkeyRelay()
-listener = keyboard.Listener(on_press=myOnPress, suppress=False)
-listener.start()
-app.aboutToQuit.connect(listener.stop)
+if not IS_WAYLAND:
+    listener = keyboard.Listener(on_press=myOnPress, suppress=False)
+    listener.start()
+    app.aboutToQuit.connect(listener.stop)
 
 intervalInput = QLineEdit()
 intervalInput.setText(str(config.intervalMillis))
@@ -209,6 +256,8 @@ headerfont.setBold(True)
 header.setFont(headerfont)
 
 footer = QLabel("version 2.9.0 special edition (certified)")
+shortcutStatus = QLabel(f"Status: {'Wayland' if IS_WAYLAND else 'X11'}")
+shortcutStatus.setWordWrap(True)
 
 
 
@@ -240,6 +289,23 @@ layout.addWidget(keypressDelayInput)
 layout.addWidget(startStopBtn)
 layout.addWidget(exitBtn)
 layout.addWidget(footer)
+layout.addWidget(shortcutStatus)
+if IS_WAYLAND:
+    wayland_portal = GlobalShortcutPortal()
+    wayland_portal.toggle_requested.connect(hotkey_relay.request_toggle, Qt.ConnectionType.QueuedConnection)
+    wayland_portal.status_changed.connect(
+        lambda status: shortcutStatus.setText(f"Status: {status}")
+    )
+    wayland_portal.start()
+    try:
+        toggle_ipc = ToggleIpcServer(hotkey_relay.request_toggle)
+        toggle_ipc.start()
+    except RuntimeError:
+        shortcutStatus.setText("Status: Error")
+    app.aboutToQuit.connect(wayland_portal.stop)
+    app.aboutToQuit.connect(input_backend.close)
+    if toggle_ipc is not None:
+        app.aboutToQuit.connect(toggle_ipc.close)
 
 
 window.setLayout(layout)

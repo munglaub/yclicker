@@ -1,14 +1,36 @@
 
 
-# dev
-source .venv/bin/activate
-
-pip install pyside6
-pip install pynput
-
-
-# project init was with:
+# Linux development
 python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-linux.txt
+
+# Wayland
+yclicker uses the desktop GlobalShortcuts portal for the global F8 shortcut and
+uinput for mouse clicks and the optional R key. The desktop portal must be
+available, and the current user must have write access to /dev/uinput. If the
+input device cannot be opened, check that the uinput kernel module is loaded
+and configure device permissions for your distribution; yclicker does not
+request root access itself.
+
+If the desktop does not provide the GlobalShortcuts portal, configure a global
+F8 shortcut in the desktop settings to run `yclicker --toggle`. This forwards
+the toggle to the running instance. When running from source, use
+`/path/to/.venv/bin/python /path/to/main.py --toggle` as the shortcut command.
+
+The portal may ask the user to confirm or choose the shortcut. If that is
+unavailable, yclicker displays the desktop-shortcut fallback status in its
+window.
+
+For a Linux PyInstaller build, install PyInstaller and build from the spec. It
+includes the dynamically loaded Wayland backend and its DBus dependencies:
+
+```sh
+pip install pyinstaller
+pyinstaller yclicker.spec
+```
+
+Run the focused backend tests with `python -m unittest discover -s tests -v`.
 
 
 
