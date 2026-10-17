@@ -18,6 +18,19 @@ F8 shortcut in the desktop settings to run `yclicker --toggle`. This forwards
 the toggle to the running instance. When running from source, use
 `/path/to/.venv/bin/python /path/to/main.py --toggle` as the shortcut command.
 
+On KDE, if the KDE portal backend is installed but the GlobalShortcuts portal
+is unavailable, select KDE for this portal by creating
+`~/.config/xdg-desktop-portal/kde-portals.conf` with:
+
+```ini
+[preferred]
+org.freedesktop.impl.portal.GlobalShortcuts=kde
+```
+
+Restart `xdg-desktop-portal` or log in again afterward. If the portal is still
+unavailable, the clicker continues to work and F8 can use the manual KDE
+shortcut above. The window status shows the portal error details.
+
 The portal may ask the user to confirm or choose the shortcut. If that is
 unavailable, yclicker displays the desktop-shortcut fallback status in its
 window.
