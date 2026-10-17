@@ -255,7 +255,7 @@ headerfont = header.font()
 headerfont.setBold(True)
 header.setFont(headerfont)
 
-footer = QLabel("version 2.9.0 special edition (certified)")
+footer = QLabel("version 3.0.0 special edition (certified)")
 shortcutStatus = QLabel(f"Status: {'Wayland' if IS_WAYLAND else 'X11'}")
 shortcutStatus.setWordWrap(True)
 
