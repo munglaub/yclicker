@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=yClicker
+Exec=python3 /home/xxx/yclicker/main.py
+Icon=yclicker.ico
+Type=Application
+Categories=Utility;
+Comment=yClicker - Mouse clicker tool
+

@@ -159,7 +159,8 @@ class GlobalShortcutPortal(QObject):
         error_message = reply.body[0] if reply.body else ""
         if "Connection already associated with an application ID" in error_message:
             return
-        raise RuntimeError(f"Portal app ID registration failed: {error_name}: {error_message}")
+        print(f"Portal app ID registration failed: {error_name}: {error_message}")
+        self.status_changed.emit("Error")
 
     async def _create_session(self, token):
         from dbus_next import Variant

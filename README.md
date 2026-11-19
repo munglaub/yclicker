@@ -74,8 +74,19 @@ Stelle sicher, dass alle notwendigen Bibliotheken installiert sind.
 Für die Erkennung globaler Hotkeys unter Wayland benötigt die Anwendung die entsprechenden Portale.
 *   **Problem:** Das Portal für globale Shortcuts ist nicht installiert oder nicht aktiv.
 *   **Lösung:** Installiere das passende Portal für deinen Desktop (z. B. `xdg-desktop-portal-gnome`, `xdg-desktop-portal-wlr` oder `xdg-desktop-portal-kde`).
+*   **Wichtig:** Damit das Portal die Anwendung korrekt identifizieren kann, muss eine `.desktop`-Datei vorhanden sein (siehe Punkt 5).
 
 ### 4. XDG_RUNTIME_DIR
 Die Anwendung benötigt eine korrekt gesetzte `XDG_RUNTIME_DIR`-Variable, um den internen IPC-Server zu starten.
 *   **Prüfung:** Gib im Terminal `echo $XDG_RUNTIME_DIR` ein. Wenn keine Ausgabe erscheint, ist die Umgebungsvariable nicht gesetzt.
+
+### 5. Desktop-Datei (Wichtig für Wayland)
+Damit das XDG Desktop Portal die Anwendung korrekt registrieren kann, benötigt es eine `.desktop`-Datei.
+*   **Problem:** Die Fehlermeldung "App info not found for 'yclicker'" tritt auf, weil keine Identifikation möglich ist.
+*   **Lösung:** Kopiere die Datei `yclicker.desktop` aus diesem Verzeichnis in dein lokales Anwendungenverzeichnis:
+    ```bash
+    cp yclicker.desktop ~/.local/share/applications/
+    ```
+    *Hinweis: Passe den Pfad in der Zeile `Exec=...` in der `.desktop`-Datei an deinen tatsächlichen Installationspfad an.*
+
 
