@@ -49,3 +49,33 @@ Run the focused backend tests with `python -m unittest discover -s tests -v`.
 
 
 
+
+## Fehlerbehebung für Wayland
+
+Falls die Wayland-Unterstützung nicht korrekt funktioniert und der Status auf "Fehler" springt, prüfe bitte folgende Punkte:
+
+### 1. Berechtigungen für `/dev/uinput`
+Die Simulation von Eingaben erfordert Zugriff auf das `uinput`-Modul.
+*   **Problem:** Die Anwendung hat keine Berechtigung, `/dev/uinput` zu öffnen.
+*   **Lösung:** Stelle sicher, dass dein Benutzer Mitglied der Gruppe ist, die Zugriff auf dieses Gerät hat (oft `input`). Du kannst dies mit folgendem Befehl versuchen:
+    ```bash
+    sudo usermod -aG input $USER
+    ```
+    *Hinweis: Du musst dich danach einmal aus- und wieder einloggen, damit die Gruppenänderung wirksam wird.*
+
+### 2. Fehlende Python-Pakete
+Stelle sicher, dass alle notwendigen Bibliotheken installiert sind.
+*   **Lösung:** Installiere die benötigten Pakete über pip:
+    ```bash
+    pip install evdev dbus-next
+    ```
+
+### 3. XDG Desktop Portals
+Für die Erkennung globaler Hotkeys unter Wayland benötigt die Anwendung die entsprechenden Portale.
+*   **Problem:** Das Portal für globale Shortcuts ist nicht installiert oder nicht aktiv.
+*   **Lösung:** Installiere das passende Portal für deinen Desktop (z. B. `xdg-desktop-portal-gnome`, `xdg-desktop-portal-wlr` oder `xdg-desktop-portal-kde`).
+
+### 4. XDG_RUNTIME_DIR
+Die Anwendung benötigt eine korrekt gesetzte `XDG_RUNTIME_DIR`-Variable, um den internen IPC-Server zu starten.
+*   **Prüfung:** Gib im Terminal `echo $XDG_RUNTIME_DIR` ein. Wenn keine Ausgabe erscheint, ist die Umgebungsvariable nicht gesetzt.
+

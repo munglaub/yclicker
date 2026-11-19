@@ -4,6 +4,8 @@ import secrets
 import socket
 import threading
 from pathlib import Path
+import traceback
+
 
 from PySide6.QtCore import QObject, Signal
 
@@ -80,7 +82,9 @@ class GlobalShortcutPortal(QObject):
     def _run(self):
         try:
             asyncio.run(self._run_portal())
-        except Exception:
+        except Exception as e:
+            print(f"Wayland Portal Error: {e}")
+            traceback.print_exc()
             self.status_changed.emit("Error")
         finally:
             if self._bus is not None:

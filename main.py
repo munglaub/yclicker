@@ -303,7 +303,8 @@ if IS_WAYLAND:
     try:
         toggle_ipc = ToggleIpcServer(hotkey_relay.request_toggle)
         toggle_ipc.start()
-    except RuntimeError:
+    except RuntimeError as e:
+        print(f"Toggle IPC Error: {e}")
         shortcutStatus.setText("Status: Error")
     app.aboutToQuit.connect(wayland_portal.stop)
     app.aboutToQuit.connect(input_backend.close)
